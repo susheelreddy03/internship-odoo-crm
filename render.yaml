@@ -1,0 +1,37 @@
+# Render Blueprint: Dashboard → New → Blueprint → pick this repo.
+databases:
+  - name: internship-db
+    databaseName: internship_prod
+    user: odoo
+    plan: basic-256mb
+    postgresMajorVersion: "16"
+
+services:
+  - type: web
+    name: internship-odoo
+    runtime: docker
+    dockerfilePath: ./Dockerfile.render
+    plan: standard   # Odoo needs ~1-2 GB RAM; free/starter (512 MB) is too small
+    healthCheckPath: /web/health
+    disk:
+      name: odoo-filestore
+      mountPath: /var/lib/odoo
+      sizeGB: 5
+    envVars:
+      - key: DB_HOST
+        fromDatabase: { name: internship-db, property: host }
+      - key: DB_PORT
+        fromDatabase: { name: internship-db, property: port }
+      - key: DB_USER
+        fromDatabase: { name: internship-db, property: user }
+      - key: DB_PASSWORD
+        fromDatabase: { name: internship-db, property: password }
+      - key: DB_NAME
+        fromDatabase: { name: internship-db, property: database }
+      - key: ODOO_MASTER_PASSWORD
+        generateValue: true
+      # Set to 1 for the first deploy only, then back to 0.
+      - key: ODOO_INIT
+        value: "1"
+      - key: ODOO_UPGRADE
+        value: "0"

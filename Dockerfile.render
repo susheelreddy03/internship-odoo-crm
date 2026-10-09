@@ -1,0 +1,13 @@
+# Production image for Render: stock odoo:19.0 with the custom addons and config baked in
+# (Render has no bind mounts). The filestore lives on a Render disk at /var/lib/odoo.
+FROM odoo:19.0
+
+USER root
+COPY custom_addons /mnt/extra-addons
+COPY render/odoo.conf /etc/odoo/odoo.conf
+COPY render/entrypoint.sh /render-entrypoint.sh
+RUN chmod +x /render-entrypoint.sh && chown -R odoo:odoo /mnt/extra-addons
+USER odoo
+
+EXPOSE 8069
+ENTRYPOINT ["/render-entrypoint.sh"]
